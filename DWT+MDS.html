@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-scanner@1.5.0/dist/dds.bundle.js"></script>
+    <script src="Resources/dynamsoft.webtwain.initiate.js"></script>
+    <script src="Resources/dynamsoft.webtwain.config.js"></script>
+</head>
+
+<body>
+    <input type="button" value="Scan" onclick="AcquireImage();" />
+    <input type="button" value="Capture from camera" onclick="CameraCapture();" />
+    <div id="dwtcontrolContainer"></div>
+    <div id="scannerContainer"></div>
+
+    <script type="text/javascript">
+        Dynamsoft.Core.CoreModule.loadWasm();
+        var DWTObject;
+
+        Dynamsoft.DWT.RegisterEvent("OnWebTwainReady", function () {
+            DWTObject = Dynamsoft.DWT.GetWebTwain("dwtcontrolContainer");
+        });
+
+        const CameraCapture = async () => {
+
+            const documentScanner = new Dynamsoft.DocumentScanner({
+                license: "YOUR_LICENSE_KEY_HERE",
+                scannerViewConfig: {
+                    enableAutoCropMode: true,
+                    enableSmartCaptureMode: true,
+                },
+            });
+
+            const result = await documentScanner.launch();
+
+
+            const canvas = result.correctedImageResult.toCanvas();
+            const blob = await new Promise((resolve) =>
+                canvas.toBlob(resolve, "image/jpeg", 0.9),
+            );
+            if (blob) await addPage(blob);
+        }
+
+        const addPage = (blob) => {
+            DWTObject.LoadImageFromBinary(
+                blob,
+                function () {
+                    console.log("success");
+                },
+                function (errorCode, errorString) {
+                    console.log(errorString);
+                },
+            );
+        }
+
+
+        function AcquireImage() {
+            if (DWTObject) {
+                DWTObject.SelectSourceAsync()
+                    .then(function () {
+                        return DWTObject.AcquireImageAsync({
+                            IfCloseSourceAfterAcquire: true,
+                        });
+                    })
+                    .catch(function (exp) {
+                        alert(exp.message);
+                    });
+            }
+        }
+    </script>
+</body>
+
+</html>
