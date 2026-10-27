@@ -20,6 +20,7 @@
             DWTObject = Dynamsoft.DWT.GetWebTwain("dwtcontrolContainer");
         });
 
+        // MDS Intialization on Button click
         const CameraCapture = async () => {
 
             const documentScanner = new Dynamsoft.DocumentScanner({
@@ -29,17 +30,17 @@
                     enableSmartCaptureMode: true,
                 },
             });
-
+            // captured result
             const result = await documentScanner.launch();
 
-
+            //Converting captured result into blob to load within Dynamic web twain
             const canvas = result.correctedImageResult.toCanvas();
             const blob = await new Promise((resolve) =>
                 canvas.toBlob(resolve, "image/jpeg", 0.9),
             );
             if (blob) await addPage(blob);
         }
-
+         // add the camera captured image into Dynamic web twain viewer
         const addPage = (blob) => {
             DWTObject.LoadImageFromBinary(
                 blob,
